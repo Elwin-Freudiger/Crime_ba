@@ -1,0 +1,612 @@
+# Data
+
+```{r, echo = FALSE, message = FALSE}
+library(readxl)
+library(readr)
+library(dplyr)
+library(tidyverse)
+#source(here::here("Data_wrangler.R"))
+```
+
+# Data Wrangling
+
+In this section,we will look at our raw datasets, what information they give us, how we wrangle/clean them to arrive at our final dataset. Lastly we will look at the mistakes in our data and any anomalies or outliers we may find.
+
+## Data by state
+
+Firstly, we will use a dataset with values by french state. This dataset will not be used for our Regression analysis as only having 95 observations is not enough to have a good statistical analysis.
+
+### Raw datasets
+
+#### Population
+
+```{r, echo = FALSE, message = FALSE}
+List_depart <- 
+  read_excel(here::here("data_start/Final/population par département.xls"), sheet = "2023")
+
+knitr::kable(head(List_depart), "simple")
+```
+
+As we can see here the dataset gives us information on the french population by state. It also gives us the number by age group and by gender. Here we have taken the sheet for the population in 2023. But we have information dating as far back as 1975. This may be useful to look at the evolution of the population.
+
+Source: [Population by state](https://www.insee.fr/fr/statistiques/1893198)
+
+#### Crime
+
+```{r, echo = FALSE, message = FALSE}
+  crimes_depart <- read_excel(here::here("data_start/Final/crimes_depart.xlsx"), 
+                              sheet = "01") 
+
+knitr::kable(head(crimes_depart), "simple")
+```
+
+Here we have taken the first state(01) we have the type of crimes and the month for every department
+
+Source: [Crime by state](https://www.data.gouv.fr/fr/datasets/chiffres-departementaux-mensuels-relatifs-aux-crimes-et-delits-enregistres-par-les-services-de-police-et-de-gendarmerie-depuis-janvier-1996/)
+
+#### Unemployement
+
+```{r, echo = FALSE, message = FALSE}
+
+Unemployement <- 
+  read.csv(here::here("data_start/Final/valeurs_trimestrielles.csv"), 
+                                     sep = ";")
+knitr::kable(head(Unemployement), "simple")
+```
+
+Source: [Unemployement by state](https://www.insee.fr/fr/statistiques/series/102760732)
+
+#### Middle school final exam
+
+```{r, echo = FALSE, message = FALSE}
+
+Middle_results <- read.csv(here::here("data_start/Final/fr-en-dnb-par-etablissement.csv"), 
+                                          sep = ";")
+
+knitr::kable(head(Middle_results), "simple")
+```
+
+At the end of middle school in France, sutdents must complete an exam and if they succed, the students will receive their "brevet des collèges" and can continue to high school. This would be similar to the "Certificat" in Switzerland. Here this database gives us results for each middle school in France. The first column is exam year. Column 2 to 13 tell us where and what type of school it was. After column 13, we find how many students registered, how many came and how many students obtained the "Brevet". Lastly, we get more information regarding how well the students did. A "mention" can be obtained if the students acheive a certain average grade. Lastly, the success rate is calculated by dividing the number of students who obtained the diploma by the number of students who came the day of the exam. We will not use this sucess rate as we believe that computing the success rate by diving students who obtained the degree with registered students would give us more information regarding education levels in France.
+
+Source: [Middle school exam results by state](https://www.insee.fr/fr/statistiques/series/102760732)
+
+#### Election Results
+
+```{r, echo = FALSE, message = FALSE}
+
+Election_dep <- read_excel(here::here("data_start/Final/Election_dep.xls"), 
+                           sheet = "Départements Tour 2", skip = 2)
+
+knitr::kable(head(Election_dep), "simple")
+```
+
+We take this sheet for the second round of election results in 2017. This second round opposed Emmanuel Macron to Marine Lepen. In this, dataset, we have the number of citizen with voting rights, how many voted, blank ballots, invalid ballots and ballots for each candidates. We also have some basic information on the candidate, such as name and gender. Lastly we also have various ratios, with one being of great interest, the percentage of votes that Marine Lepen received. We decided to take the 2017 election because with our year being 2019, seeing the "impact" of the last election on crime could yield interesting results.
+
+Source: [2017 Election results by state](https://www.data.gouv.fr/fr/datasets/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-2nd-tour/)
+
+#### Immigration
+
+```{r, echo = FALSE, message = FALSE}
+
+Immigration_2019 <- read_excel(here::here("data_start/Final/Immigration_2019.xlsx"), 
+                               sheet = "Pop0_D")
+
+knitr::kable(head(Immigration_2019), "simple")
+```
+
+Here we take this sheet and look at the number of immigrants by state. According to the documentation, an immigrant is a person born outside of France and living in France, while a foreigner is someone who does not have the french nationality. It should be noted that the label for foreigners and French citizens appears to have been switched in the dataframe. Fortunately, we will only use the number of immigrants for our study.
+
+Source: [Immigration numbers by departement](https://www.insee.fr/fr/statistiques/6793282?sommaire=6793391#documentation)
+
+#### Population Density
+
+```{r, echo = FALSE, message = FALSE}
+
+population_2019 <- read_excel(here::here("data_start/Final/population_2019.xlsx"), 
+                              sheet = "Figure 3")
+
+knitr::kable(head(population_2019), "simple")
+```
+
+Source: [Population Density by state](https://www.insee.fr/fr/statistiques/6793282?sommaire=6793391#documentation)
+
+### Wrangling
+
+#### List of departements.
+
+We create a list of states with their numbers using the population dataset.
+
+```{r}
+List_departe <- List_depart[5:100, 1:2]
+colnames(List_depart) <- c("Dep_number", "Dep_name")
+
+knitr::kable(head(List_departe, n=3), "html")
+```
+
+To do this, we select our states and only the name and state code from our Population dataset. For reasons stated above, we only select metropolitan states. This means only selecting the first 96 states. We then rename our columns with easy to remember names that will be used as our key in the future.
+
+#### Population by year and department
+
+We will create 2 datasets.
+
+```{r, eval=FALSE}
+years_pop <- as.character(1975:2023) #every year we need to extract a sheet
+Pop_by_year <- List_depart[1] #list with depart numbers 
+Col_name <-  paste0("pop_", years_pop) #List to rename the columns
+
+
+for (i in 1:length(years_pop)) {
+  pop <- 
+    read_excel(here::here("data_start/Final/population par département.xls"), 
+               sheet = years_pop[i]) 
+  Pop_by_year <- cbind(Pop_by_year, pop[5:100, 8])#add them to the df
+  colnames(Pop_by_year)[i+1] <- Col_name[i] #rename cols
+}
+```
+
+our first dataset is the population by years. To create this, we create a vector of all the years present in the excel file. using a for loop, we open each excel sheet for each year, add them to our list of departments dataset created previously and rename it to a standard name. This dataset will be useful for our graphical representations.
+
+we then, we take this dataset and only keep the population in 2019 and the department number. We will use this for our clustering analysis.
+
+```{r, eval=FALSE}
+Pop_2019 <- Pop_by_year |> 
+  select(Dep_number, pop_2019)
+View(Pop_2019)
+```
+
+#### Crime
+
+```{r, eval=FALSE}
+years_crime <- 1996:2021
+Crime_total <- t(data.frame(years_crime))
+colnames(Crime_total) <- Crime_total[1,]
+
+view(Crime_total)
+
+for (i in 1:nrow(List_depart)) {
+  crimes_depart <- read_excel(here::here("data_start/Final/crimes_depart.xlsx"), 
+                              sheet = List_depart$Dep_number[i]) 
+  #Load each datasheet with the department list
+  
+  crimes_depart <- crimes_depart |>
+    select(-(1:10)) |> 
+    summarise_all(sum) |>
+    pivot_longer(cols = everything(), names_to = "Year", values_to = "Dep_number") |>
+    mutate(Year = substr(Year, 2, 5)) |>
+    group_by(Year) |>
+    summarize(Dep_number = sum(Dep_number)) |> t()
+  
+  Crime_total <- rbind(Crime_total, crimes_depart[2,])
+}
+
+Crime_total <-  Crime_total[-1, ]
+Crime_total <- cbind(List_depart[1], Crime_total)
+```
+
+We create a total number of crimes committed by department and by year.
+
+```{r, eval=FALSE}
+Crime_2019 <- Crime |>
+  select(Dep_number, `2019`) |>
+  rename(Crime_tot_2019 = `2019`)
+
+Crime_2019 <- full_join(Crime_2019, Pop_2019, join_by("Dep_number"))
+View(Crime_2019)
+
+Crime_2019 <- Crime_2019 |>
+  mutate(Crime_rate_1k = (Crime_tot_2019/pop_2019)*1000)
+```
+
+We then only select the year 2019 and compute the crime rate per thousand people. To do this we must add pur previously created population in 2019 dataframe.
+
+#### Unemployment
+
+This dataset is a bit trickier.
+
+```{r, eval=FALSE}
+dummy <- seq_len(nrow(Unemployement)) %% 2 #Dummy variable equal to 1 if the row is an odd number
+Unemployement <- cbind(dummy, Unemployement)
+
+Unemployement <- Unemployement |>
+  filter(dummy == 1) |>
+  select(-c(1, 3,4,5))
+Unemployement <-  Unemployement[-(1:15),] # only select departments
+
+Unemployement <- Unemployement |> 
+  separate(Libellé, into = c("X", "Departement") ,sep=" - ") |>
+  select(-1) 
+
+Unemployement <- Unemployement[-(97:100), ]
+```
+
+First we need to remove every odd number row as they do not provide us with any information. We create a dummy variable that equals 1 if the row is an odd number, we then only select our rows with data. We then only keep the department name from the department name. We then only select metropolitan departments
+
+```{r, eval=FALSE}
+Unemployment_quarterly <- Unemployement |>
+  pivot_longer(cols = -Dep_name, names_to = "Year", values_to = "Total") |>
+  mutate(Total = as.numeric(Total)) |>
+  mutate(Year = substr(Year, 2, 8)) |>
+  group_by(Dep_name, Year) |>
+  summarize(Total= mean(Total)) |>
+  pivot_wider(names_from = Year, values_from = Total)
+
+Unemployment_quarterly <- full_join(List_depart, Unemployment_quarterly, join_by(Dep_name))
+```
+
+We now need to compute the quarterly unemployment rate. To do this we use pivot_longer to be able to summarize our data by year and department. we then compute a mean unemployment rate for each year and rearrange our departments names to be inline with our list of departments using the full_join() function.
+
+```{r, eval=FALSE}
+Unemployment_year <- Unemployment_quarterly |>
+  pivot_longer(cols = -(Dep_number:Dep_name), names_to = "Year", values_to = "Total") |>
+  mutate(Year = substr(Year, 1, 4)) |>
+  group_by(Dep_number, Dep_name, Year) |>
+  summarize(Total = mean(Total)) |>
+  pivot_wider(names_from = Year, values_from = Total)
+```
+
+We now compute the Unemployment by year by computing the mean of each quarter.
+
+```{r, eval=FALSE}
+Unemp <- Unemployment_year |> 
+  select(Departement, `2019`) |>
+  rename(Dep_name = Departement,
+         Unemp_2019 = `2019`)
+```
+
+And we select only the year 2019 for our clustering and PCA analysis.
+
+#### Middle school results
+
+```{r, eval=FALSE}
+Middle <- Middle_results |>
+  filter(Session == 2019) |>
+  select(Code.département, Admis, Inscrits) |>
+  mutate(Pass_rate = (Admis/Inscrits)) |>
+  group_by(Code.département) |>
+  summarize(Pass_rate_2019 = mean(Pass_rate)) |>
+  rename(Dep_number = Code.département) |>
+  mutate(Dep_number = substr(Dep_number, 2, 3))
+
+Middle <- Middle[(2:97), ]
+```
+
+Here we start by only taking the year 2019, we then only select useful columns, we then compute the Pass_rate which is the percentage of students who obtained the certificate. We then change the department number to be inline with our naming convention. Lastly, we select metropolitan departments.
+
+#### Election results
+
+```{r, eval=FALSE}
+Election_by_dep <- Election_dep |>
+  select(c(1,28)) |>
+  rename(Dep_number = `Code du département`,
+         Lepen_score = `% Voix/Exp...28`) |>
+  mutate(Win_lepen = ifelse(Lepen_score>50, 1, 0))
+
+Election_by_dep <- Election_by_dep[1:96, ]
+
+#rename dep_number
+for (i in 1:nrow(Election_by_dep)) {
+  if(nchar(Election_by_dep$Dep_number[i]) == 1) {
+    Election_by_dep$Dep_number[i] <- paste0("0",  Election_by_dep$Dep_number[i])
+  }
+}
+```
+
+For our Election results, we select the columns we need. Then, we select metropolitan departments. Then we need to change our department number to our naming convention to be able to use it as a key. As a reminder, our naming convention is to write single digit department with a leading zero.
+
+#### Immigration
+
+```{r, eval=FALSE}
+Immig_2019 <- Immigration_2019 |>
+  slice(1:96) |>
+  select(c(1, 2, 4)) |>
+  rename(Dep_name = `...1`,
+         Immig_tot = Immigrés,
+         pop_2019 = `Ensemble...4`) |>
+  mutate(Immig_rate = Immig_tot/pop_2019) |>
+  select(Dep_name, Immig_rate)
+```
+
+Immigration is quite simple, we select only metropolitan departments with the slice() function. We then select columns that we need, rename them in english and compute the immigration rate which is Total number of immigrants divided by the total population.
+
+#### Population density
+
+```{r, eval=FALSE}
+Dens_2019 <- population_2019 |>
+  rename(Dep_number = Département,
+         Density_2019 = Densité) |>
+  select(Dep_number, Density_2019) |>
+  slice(1:96)
+```
+
+Similarly, population density is quite easy. we rename our selected columns to our naming convention, we then select only metropolitan departments using the **slice()** function.
+
+#### Join them into a single dataset
+
+Our last step is to join all of our previously cleaned datasets into a single dataset
+
+```{r, eval=FALSE}
+Full_data_dep <- full_join(List_depart, Unemp, join_by("Dep_name")) |>
+  full_join(Crime_2019, join_by("Dep_number")) |>
+  full_join(Middle, join_by("Dep_number")) |>
+  full_join(Election_by_dep, join_by("Dep_number")) |>
+  full_join(Immig_2019, join_by("Dep_name")) |>
+  full_join(Dens_2019, join_by("Dep_number"))
+```
+
+## Data by town
+
+### Raw datasets
+
+#### Crime
+
+```{r, echo = FALSE, message = FALSE}
+
+Crimes <- read.csv(here::here("data_start/Final/try.csv"), sep = ";")
+
+knitr::kable(head(Crimes, n=10), "simple")
+```
+
+This dataset is quite big with `{r}nrow(Crimes)`. The first column is the CODGEO, this is a towncode by the INSEE(French institute of statistics and economics studies) the first 2 numbers are the department that the town is located in and the last 3 numbers are the town number. This first column will be very useful because it is a unique number for each town and we will use it as our key. The second column is our year, the third is the type of crime commited. The fourth column "valeur.publiée" tells us if the town publishes their crime statistics or not. It should be noted that some town are coded as publishing although the value is missing. We will dive into this later in the EDA part of our report. We then have a column telling us the total number of crimes and one for crime rate for a thousand people. The remaining columns will not be used in our analysis. The remaining LOG variables are for households in the town and the mill is a "millésime" method of census that allows a census to be conducted every year at a smaller scale, this is useful to track changes in the population year by year, but it will not be used by us.
+
+Lastly, the rules for publishing data are the following: crime data is only published if the town records more than 5 instances of crime for 3 consecutive years. This is done to protect the privacy of the people involved and because the statistical analysis of such small data would not yield satisfying results.
+
+Source: [Crime by town](https://www.data.gouv.fr/fr/datasets/bases-statistiques-communale-et-departementale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/)
+
+#### Density
+
+```{r, echo = FALSE, message = FALSE}
+
+Dense <- read_csv(here::here("data_start/Final/villes_france.csv"), col_names = FALSE)
+
+knitr::kable(head(Dense), "simple")
+```
+
+This dataframe contains various information regarding french towns. Here, can be found the size of each town, the population but also the altitude for example. Here we will use the population in 2010 and the size to compute the density.
+
+Source: [Density by town](https://sql.sh/736-base-donnees-villes-francaises)
+
+#### Population by town
+
+```{r, echo=FALSE, message=FALSE}
+
+Pop_2019 <- read_delim(here::here("data_start/Final/Pop_2019.csv"), 
+                                delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+knitr::kable(head(Pop_2019), "simple")
+```
+
+This dataset is quite simple, we have a column indicating the level, here is is towns, the CODGEO mentioned above, the town name, followed by the gender and age group. finally we have the number of inhabitants that fit these criterias.
+
+Source: [Density by town](https://www.insee.fr/fr/statistiques/6456157?sommaire=6456166)
+
+#### Population by diploma
+
+```{r, echo=FALSE, message=FALSE}
+
+Pop_16 <- read_excel(here::here("data_start/Final/pop-16ans-dipl6819_v2.xls"), 
+                                    sheet = "Commune_2019")
+
+knitr::kable(head(Pop_16), "html")
+```
+
+In this dataset, column 1 to 6 are the location of the town, with indicators such as the region, the departement and the town number. Then the population is divided by gender and by diploma obtained, we will only focus on the total population over 25 who doesn't have any diploma. The whole excel files gives us this information for every year starting in 1968. We only take the year 2019.
+
+Source: [Population by diploma by town](https://www.insee.fr/fr/statistiques/1893149)
+
+#### 2017 Election results
+
+```{r, echo=FALSE, message=FALSE}
+
+Election_quarto <- read_excel(here::here("data_start/Final/Presidentielle_2017_Resultats_Communes_Tour_2_c.xls"), 
+    col_types = c("text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "text", "text"))
+
+knitr::kable(head(Election_quarto), "simple")
+```
+
+This dataset is very similar to the one for departements.
+
+Source: [2017 Election results by town](https://www.data.gouv.fr/fr/datasets/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-2nd-tour-par-communes/)
+
+#### Poverty by town
+
+```{r, echo=FALSE, message=FALSE}
+
+Pov_2019 <- read_delim(here::here("data_start/Final/FILO2019_DEC_Pauvres_COM.csv"), 
+                                       delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+knitr::kable(head(Pov_2019), "simple")
+```
+
+This dataset does not have easily understable column names. The first is CODGEO, the town code. The columns starting with "TP" indicate poverty rates. the number afterwards indicate the rate at which people are considered poor. For example, with 60% which is the commonly used cutoff for poverty, the number means that a certain percentage of people earn only 60% of the median revenue in France. The column "TP60IP19" is the poverty intensity. basically how far from the median revenue are those poor people. We will also use this infomarmation. The remaining columns divide those values by age
+
+Source: [Poverty by town](https://www.insee.fr/fr/statistiques/6036907)
+
+### Wrangling
+
+#### Crime
+
+```{r, eval=FALSE}
+Type_per_year <- Crimes |> 
+  filter(valeur.publiée == "diff") |>
+  filter(!grepl("^97", CODGEO_2023)) |>
+  select(CODGEO_2023, annee, classe, faits, tauxpourmille)
+
+Type_per_year <- cbind(Type_per_year[1], Type_per_year)
+colnames(Type_per_year) <- c("Departement", "Town", "Year", "Type", "Number", "Rate_per_1k")
+
+Type_per_year <- Type_per_year |> 
+  mutate(Departement = substr(Departement, 1, 2)) |>
+  mutate(Rate_per_1k = str_replace_all(Rate_per_1k, ",", ".")) |>
+  mutate(Rate_per_1k = as.numeric(Rate_per_1k)) |>
+  group_by(Departement, Town, Year, Number, Type) |>
+  summarize(Rate_per_1k = mean(Rate_per_1k, na.rm = TRUE), ) |> #omit the missing values because some are missing even though they were indicated as published
+  group_by(Departement, Town, Year, Type, Rate_per_1k) |>
+  summarize(Number = sum(Number))
+```
+
+We use this code to get the data by type and by year for each town. First, we only select values indicated as publishing their data ("diff"). We then only take metropolitan departments, by filtering every row except those starting with 97(the indicator for outer seas department). We then duplicate the town code to create a Department column. we rename the columns for more clarity. we then create our department column by **substr()** the first 2 digits of the town code. We now need to compute the rate for a thousand. To do this, we first must replace every comma by a point, that is because European notation of numbers uses a comma instead of a point for decimal numbers. we then use \***group_by()** and **summarize()** to get the mean rate. and use the same functions to get the total number of crimes. This dataframe will be useful for our plots
+
+```{r, eval=FALSE}
+Crime_2019_town <- Type_per_year |>
+  filter(Year == 19) |>
+  group_by(Departement, Town) |>
+  summarize(Rate_per_1k = mean(Rate_per_1k)) |>
+  mutate(Town = paste0(Departement, Town)) |>
+  rename(Town_code = Town, Dep = Departement)
+```
+
+We then summarize the rate value by town to use in our regression
+
+#### Density
+
+```{r, eval=FALSE}
+Density_town <- Dense |>
+  select(c(4, 11, 15, 19)) |>
+  rename(Town_name = `X4`, 
+         Town_code = `X11`,
+         Pop_2012 = `X15`,
+         Size = `X19`) |>
+  filter(!str_detect(Town_code, "^97")) |>
+  mutate(Density_2019 = Pop_2012/Size) |>
+  select(Town_code, Town_name, Density_2019)
+```
+
+To do this, we first select the columns we need. In that case, the name of the town, the Town_code, the population and the size. We then rename them to our standard, only select metropolitan departments and compute the density(Population/Size) lastly, we select only our important columns.
+
+#### Population
+
+```{r, eval=FALSE}
+Pop_by_town <- Pop_2019 |>
+  group_by(CODGEO) |>
+  summarise(Total = sum(NB)) |>
+  rename(Town_code = CODGEO, Total_pop = Total)
+view(Pop_by_town)
+```
+
+The cleaning for this dataset is very simple, we compute the sum of every age group and gender group to find the total number of inhabitants by town.
+
+#### Population without a diploma
+
+```{r, eval=FALSE}
+Pop_no_diploma <- Pop_16_no_diploma |>
+  select(c(2, 3, 6, 8, 10)) |>
+  slice(-1) |>
+  rename(Dep_number = `Département\nen géographie courante`,
+         Town_number = `Commune\nen géographie courante`,
+         Town_name = `Libellé de commune`,
+         no_diploma_M = `Aucun diplôme\nHommes\n25 ans ou plus\nRP2019`,
+         no_diploma_F = `Aucun diplôme\nFemmes\n25 ans ou plus\nRP2019`) |>
+  group_by(Dep_number, Town_number) |>
+  summarize(no_diploma = sum(as.numeric(no_diploma_F), as.numeric(no_diploma_M), na.rm = TRUE)) |>
+  mutate(Town_code = paste0(Dep_number, Town_number)) |>
+  select(Dep_number, Town_code, no_diploma) |>
+  filter(!str_detect(Dep_number, "^97")) |>
+  left_join(Pop_by_town, join_by(Town_code)) |>
+  na.omit() |>
+  mutate(No_diploma_rate1k = (no_diploma/Total_pop)*1000)
+
+Paris_tot <- Pop_no_diploma |>
+  filter(Dep_number == "75") |>
+  summarize(No_diploma_rate1k = mean(No_diploma_rate1k)) |>
+  rename(Town_code = Dep_number) |>
+  mutate(Town_code = "75056")
+
+Pop_no_diploma <- Pop_no_diploma |>
+  group_by(Town_code, No_diploma_rate1k) |>
+  select(Town_code, No_diploma_rate1k)
+
+Pop_no_diploma <- rbind(Pop_no_diploma, Paris_tot)
+```
+
+To have our final data, we first select our needed columns. we then remove the first row and rename the columns. we then compute the total number of people without a diploma and make sur to remove any NA values. we then select only metropolitan departments, with **filter()** and **str_detect**. We then compute a left join with the dataframe Pop_by_town to get the population by town. afterwards, we compute the rate at which people do not have a diploma for a thousand people by dividing the total number of people without any diploma by the population of the town and multiply it by a thousand.
+
+Lastly, we have noticed that this dataset provides us with data from every subdivision in the city of Paris, while this level of precision could be welcome, all of our other datasets counts Paris as a single city. As such, we must aggregate our rate for the city of Paris. To do this, we create a new df called Paris_tot, we then summarize all of it. We add the row at the end of our previous dataframe. It is unordered, but will become ordered when we use the **join** function later on.
+
+#### 2017 election results.
+
+```{r, eval=FALSE}
+Vote_2017 <- Presidentielle_2017_Resultats_Communes_Tour_2_c |>
+  select(c(1, 2, 3, 25, 32)) #select ony the values important to us in that case, the department, the towncode and the result
+Vote_2017 <- Vote_2017[1:35281, ]
+colnames(Vote_2017) <- c("Department", "Dep_name", "Town_num", "Macron", "Lepen")
+
+#Need to add the Corse departement number(2A/2B)
+Vote_2017$Department <- as.character(Vote_2017$Department)
+
+for (i in 1:nrow(Vote_2017)) {
+  if (Vote_2017$Dep_name[i] == "Corse-du-Sud") {
+    Vote_2017$Department[i] <-  "2A"
+  }
+  if (Vote_2017$Dep_name[i] == "Haute-Corse") {
+    Vote_2017$Department[i] <-  "2B"
+  }  
+}
+
+#Now let's standardize the notation of departments and town codes by adding zeroes before.
+for (i in 1:nrow(Vote_2017)) {
+  if (nchar(Vote_2017$Department[i]) == 1) {
+    Vote_2017$Department[i] <- paste0("0", Vote_2017$Department[i])
+  }
+  if (nchar(Vote_2017$Town_num[i])<=2) {
+    if (nchar(Vote_2017$Town_num[i]) <= 1) { 
+           Vote_2017$Town_num[i] <- paste0("00", Vote_2017$Town_num[i])
+    }
+           else {Vote_2017$Town_num[i] <- paste0("0", Vote_2017$Town_num[i])
+           }
+  }
+}
+
+#Create the town key
+Vote_2017 <- Vote_2017 |> 
+  mutate(Town_code = paste0(Department, Town_num)) |>
+  mutate(Win_Lepen = ifelse(Lepen>50, 1, 0)) |>
+  select(Department, Town_code, Macron, Lepen, Win_Lepen)#Create a dummy variable that equals 1 if LePen "won" the town (scored more than 50%)
+```
+
+we first select our needed columns. then, we only select metropolitan departments and rename our columns. the next step is to code the Corsica departments numbers. Corsica is split into 2 departments. 2A: "Corse-du-Sud" and 2B: "Haute-Corse". these 2 departments are found between the department 19 and department 21. They used to be one single department butt were split in 2 in 1975. In our database, only the name can be found. we need the number. we use a **for loop** to code it into the Departement column. We then standardize our Departments numbers and town codes by adding leading zeroes. This then allows us to create our town_number key. Finally, we code a dummy variable that equals 1 if Marine Lepen had more than 50% of the votes in a town.
+
+#### Poverty
+
+```{r, eval=FALSE}
+Povr_2019 <- Pov_2019 |>
+  select(c(1, 4, 6)) |>
+  na.omit() |>
+  rename(Town_code = CODGEO,
+         Povrety_2019 = TP6019,
+         Intensity_povrety = TP60IP19)
+```
+
+Poverty is quite simple. we select our columns, rename them and we do not forget to omit values that were blank
+
+#### Join them into a single dataframe
+
+Finally, we join all of those datasets into a single one. To do this, we first use **full_join()** to see how values are missing.
+
+```{r, eval=FALSE}
+Everything_by_town <- Crime_2019_town |>
+  full_join(Pop_by_town, join_by(Town_code)) |> 
+  full_join(Density_town, join_by(Town_code)) |>
+  full_join(Vote_2017, join_by(Town_code)) |>
+  full_join(Povr_2019, join_by(Town_code)) |>
+  full_join(Pop_no_diploma, join_by(Town_code))
+summary(Everything_by_town)
+```
+
+As we can see, Poverty is a smaller dataset. This may be a problem, but upon further inspection, we see that the smallest population is 1'700 inhabitants. And we still have around 5'000 observations. We previously thought about removing every observation where the number of inhabitants of a town was smaller than 200, because of the poor statistical analysis that would stem from such extreme values. the INSEE institute were most of our data has been collected recommends not doing any analysis on towns of less than 200 inhabitants. As such, the reduced number of observations with the poverty dataset is not a problem.
+
+```{r, eval=FALSE}
+Everything_by_town_clean <- Everything_by_town |>
+  na.omit() |>
+  select(Dep_number, 
+         Town_code, 
+         Town_name, 
+         Total_pop, Rate_per_1k, Density_2019, Lepen, Win_Lepen, Povrety_2019, Intensity_povrety, No_diploma_rate1k)
+```
+
+then, we omit our missing values, select only our very important values and we have our final dataset. that we may use for EDA and most importantly for our Regression analysis. Were we will predict the crime rate of a town using our independent variables.
