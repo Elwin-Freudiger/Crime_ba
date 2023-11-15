@@ -1,9 +1,9 @@
 ---
-title: "A cool title"
-author: "Name I, First Name I and Name II, First Name II"
+title: "What is the impact of socio-economic factors on Criminality in France?"
+author: "Pierre Monari, Elwin Freudiger"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
-```{r child = c('intro.qmd', 'data.qmd')}
+```{r child = c('intro.qmd')}
 ```

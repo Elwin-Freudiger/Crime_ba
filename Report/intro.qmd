@@ -7,39 +7,50 @@ editor:
 # Introduction
 
 ```{r, echo = FALSE, message = FALSE}
-source(here::here("scripts/setup.R"))
+source(here::here("Script/setup.R"))
 ```
 
-We chose to discuss the Criminality in France because as French people
-this is a subject that really concerns us. France is one of the top ten
-most powerful countries in the world, but we are forced to observe that
-as the rest of the world, France is facing very difficult times in terms
-of security. This finding has a huge impact on the political discussions
-and the polarity that installs itself in the everydays discussion. In
-fact, security has become one of the most important political positions
-for the actors of the government, and this only in the last thirty
-years.
+## 1.1 Overview and motivations
 
-The reason is simple: the amount of attacks, stealing, rapes and many
-other types of crimes is exploding in France. Some department like «
-Seine Saint Denis » have become unbearable in terms of security, and are
-clearly out of control. Different types of trafficking and crimes are
-literally freely made. Same finding for the cities of Marseille or
-Manosque and many more. But what are the reasons?
+This project will analyze the factors influencing Criminality in France.
+We chose this Subject because we are both french and criminality
+consistently ranks as one of the most important priority for the French
+population. In our study, we wanted to focus on the social and economic
+factors contributing to this issue. France is often regarded as one of
+the major world powers, and yet, it is clear that similarly to the rest
+of the world, the french population is feeling more and more insecure
+regarding crime. Crime is impacting the political landscape very much.
+This subject has also made it's way into everyday discussions as it
+proves to be a polarizing topic. In the last thirty years, Politicians
+have often promised to tackle crime through several means, and as the
+population wants more to be done against it, the governement has often
+made it one of their top priority.
 
-As we two are French people we wanted to synthesized the main reasons
-presented by the medias of our country for the criminality in France
-except for the « Etnical Origin » of the criminals which is forbidden in
-France, and measure their real impact on crime rate of the different
-territories. In fact the country is facing huge socio-economics,
-employment, poverty, conditions of leaving, and school level issues. Our
-project wants to explore the link between socio-economic factors and
-criminality rates. Establishing a link would give a new look on crime
-and its causes. Additionally we are interested in a valuations whether
-this data could be used by the government to address public safety.
-Moreover, what are the core human drivers that push humans to commit
-crimes? How their socio economic environment and their scholar
-curriculum impact their ability to commit crimes?
+In recent times, there has been a noticeable rise in criminal activities
+across France. Regions such as "Seine Saint Denis" in the Paris area.
+has seen emboldened criminals committing crimes in broad daylight,
+contributing to a perception of increased chaos and increasing the
+feeling of insecurity. Similar concerns have surfaced in cities like
+Marseille. Additionally, it's worth noting that the prison population
+has reached an all-time high in July 2023. But what are the reasons for
+increased criminality?
+
+The goal of our research is to synthesize the main reasons behind
+criminality. Medias have often presented various reasons to explain
+crime, our research will look at those hints and see if they may have
+any statistical significance. It should be noted that data regarding
+"Ethnic origin" is not available, this variable is sometimes singled out
+as one of the driver of criminality and unlike in the United States,
+France has outlawed any form of statistics on this subject. as such, we
+will mostly focus on socio-economics drivers behind crime. France is
+facing substantial socio-economics issues, unemployment, poverty,
+conditions of leaving, and school level Our project wants to explore the
+link between socio-economic factors and criminality rates. Establishing
+a link would give a new outlook on crime and its causes. Additionally we
+would like to know whether, this data could be used by the government to
+address public safety. Moreover, what are the core human drivers that
+push humans to commit crimes? How their socio-economic environment and
+their educational path may impact their ability to commit crimes?
 
 ### 1.2 Associated papers
 
@@ -48,26 +59,41 @@ https://www.institutpourlajustice.org/content/2017/12/Pauvreté-et-délinquance.
 ### 1.3 Research questions
 
 The purpose of this study is to evaluate the impact of different
-socioeconomic factors on criminality in France. We are using for that an
-important gouvernemental database which divide crimes in 14 categories:
-Destruction and intentional damages Thefts without violence against
-people Residential burglaries Volontariat assault and battery Thefts
-from vehicles Domestic assault and battery Theft of vehicle accessories
-Other intentional assault and battery Sexual violence Violent robberies
-without weapons Drug trafficking Robbery with weapons We will consider
-the following macroeconomic variables: Poverty rate, Unemployment rate,
-Results at school (Brevet des collèges), Density of Population and
-results of previous presidential elections. These are the following
-question we'll try to focus on: Can we explain the criminality rate in
-France using the unemployment rate? Can we explain the criminality rate
-in France using the average earning rate/poverty rate? Can we explain
-the criminality rate in France using the school curriculum ? Can the
-density of population in territories explain criminality? Can the
-immigration rate explain criminality? Can the previous presidential
-results in territories have an impact on criminality? Is there a
-correlation between these mentioned variables (unemployment rate,
-average earning rate)?
+socioeconomic factors on criminality in France. We are using for that a
+french government database which divide crimes in 14 categories:
 
--   Overview and Motivation
--   Related Work
--   Research questions
+1.  Destruction and intentional damages
+2.  Thefts without violence against people
+3.  Residential burglaries
+4.  Assault and battery
+5.  Thefts from vehicles
+6.  Domestic assault and battery
+7.  Theft of vehicle accessories
+8.  Other intentional assault and battery
+9.  Sexual violence
+10. Violent robberies without weapons
+11. Drug trafficking
+12. Robbery with weapons
+
+We will consider the following macroeconomic variables:
+
+-   Poverty rate,
+-   Unemployment rate
+-   School indicators(Success rate at an exam/Share of adults without a
+    dimploma)
+-   Density of Population
+-   Results of previous presidential election.
+
+These are the following question we will focus on:
+
+-   Can the criminality rate in France be explained using the
+    unemployment rate?
+-   Can the criminality rate in France be explained using the poverty
+    rate?
+-   Can the criminality rate in France be explained using education
+    indicators ?
+-   Can the density of population in territories explain criminality?
+-   Can the immigration rate explain criminality?
+-   Can the previous presidential results in territories have an impact
+    on criminality?
+-   Is there a correlation between these mentioned variables?
