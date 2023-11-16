@@ -6,10 +6,6 @@ editor:
 
 # Introduction
 
-```{r, echo = FALSE, message = FALSE}
-source(here::here("Script/setup.R"))
-```
-
 ## 1.1 Overview and motivations
 
 This project will analyze the factors influencing Criminality in France.

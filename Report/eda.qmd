@@ -9,6 +9,7 @@
 ## Visualization
 
 ```{r, echo = FALSE, message = FALSE}
+#Load required packages
 library(readxl)
 library(readr)
 library(dplyr)
@@ -16,6 +17,8 @@ library(tidyverse)
 library(ggplot2)
 library(plotly)
 ```
+
+### Crime
 
 ```{r, echo=FALSE, message = FALSE}
 Type_per_year <- read.csv(here::here("Type_per_year.csv"))
@@ -33,7 +36,9 @@ Five_hist <- Five_common %>%
 
 ```
 
-### Crime
+In this graphic we chose to compute the crime rate per hundred persons in the 5 departments with the bigger crime rate: 92,69,13,93,75 and those with the lower crime rate: 12,15,50,70,48 
+The first thing we can observe is the major disparity between the average crime number in those départements. In fact the highest crime rate in the 75th department is more than 4 times higher than the 12th one: 2.928 vs 12.385
+It’s important to note that the departments with the higher crime rate are the one englobing the biggest city of the country: 92,93,75 are around Paris, 13 around Marseille, 69 around Lyon, this is completely understandable.
 
 We start by looking at the evolution of the different types of crime by year in France.
 
@@ -78,9 +83,8 @@ Least_plot <- ggplotly(Least_plot)
 Least_plot
 ```
 
-
-
-Types of crime comitted also depends on the location. For example we can see in the following two graphs the difference between the Paris departement and the Cher departement. the Cher is a sparsely populated departement.
+The Types of crime committed also depend on the location. For example we can see in the following two graphs the difference between the Paris departement and the Cher departement. The Cher is a sparsely populated departement. The first graph refer to the Paris département, the second to the Cher département 
+Here we observe that in Paris, theft without violence is the number one committed crime. This is surely due to Paris being a big city with many tourists and as such many picpockets. This may not be the case in the Cher region with only 300'000 inhabitants. In the Cher, theft is less prevalent with the biggest Crime Rate being deliberate destruction and damage. Followed by Burglaries.
 
 ```{r, echo=FALSE, message=FALSE}
 Dep75 <- Five_common %>%
@@ -103,7 +107,8 @@ plot18
 
 ```
 
-Here we can see that in Paris, theft without violence is the number one comitted crime. This is surely die to Paris being a big city with many tourists and as such many picpockets. This may not be the case in the Cher region with only 300'000 inhabitants. In the Cher, theft is less prevalent with the biggest Crime Rate being deliberate destruction and damage. Followed by Burglaries.
+The Types of crime committed also depend on the location. For example we can see in the following two graphs the difference between the Paris departement and the Cher departement. The Cher is a sparsely populated departement. The first graph refer to the Paris département, the second to the Cher département 
+Here we observe that in Paris, theft without violence is the number one committed crime. This is surely due to Paris being a big city with many tourists and as such many picpockets. This may not be the case in the Cher region with only 300'000 inhabitants. In the Cher, theft is less prevalent with the biggest Crime Rate being deliberate destruction and damage. Followed by Burglaries.
 
 ### Unemployment
 
@@ -136,7 +141,12 @@ ggplot(Unemployment_fr, aes(x = Year, y = Rate, group = 1)) +
 
 
 ```
-As we can see, Unemployment evolves through the years.
+We can observe a huge increase in the unemployment rate in the 90’s in France. As we know after the Second World War, the European countries especially France had an important period of economic growth, this period is known as the « 30 glorieuses ». This period matched with an important demand of workers, from Europe and from other continents. There was a need to rebuild the country and an important diversification of the jobs with help of technological progress. 
+After that in the early 80’s, an important recession started in Europe, with a decrease of job creation in most of the important European countries, especially Germany, Great Britain and France. And the unemployment rate was approximately increasing by 1% a year in France in 1990, to reach the record rate of 11% in 1997. This is mainly explained by the two petroleum chocks in the 70’s and 80’s.
+The French president of the time Francois Mitterand said in 1993 : «  In terms of unemployment, we’ve tried everything and we’ve failed everything ».
+Following this recession France had an important decrease of unemployment rate, the explanations are multiple but the most plausible is the creation of the Euro zone and currency. This tendency lasted until the major financial crisis of 2008.
+In the last decade the unemployment rate has been mastered once again until the COVID 19 pandemic in 2020 which implicated a massive suppression of jobs in different areas like in the restoration or show industry.
+
 
 
 Let's look at the unemployment by Department
@@ -155,6 +165,13 @@ Bars <- ggplot(Unemp_2022, aes(x = reorder(Departement, Rate), y = Rate, fill = 
 Bars <- ggplotly(Bars)
 Bars
 ```
+We can observe with this graph that there’s an important disparity in unemployment rates in France. It’s also relevant that one of the departments with the higher crime rate which we’ve seen before,  is also one of the departments with the higher crime rates (93). This may be an indication of what we could possibly find with the statistical regressions.
+
+### Maps
+
+This map compute the crime rate in every French department and shows us the important disparity in the amount of crimes committed across the country. 
+
+This map shows us the score in the second round of the French presidential election of 2017, which we choose to compute as a possible explanation variable. As we know Emmanuel Macron has been elected president with 66.10% so the departments mainly voted for him, however it is interesting to see the departments where LePen had an important share of the suffrages. Here those departments are represented with an intense color.
 
 
 
